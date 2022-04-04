@@ -11,10 +11,10 @@ const Header: React.FC = () => {
 
   return (
     <HeaderContainer>
+      <Title>Weather_WIT</Title>
       <HeaderIconsContainer>
         <DarkModeToggle checked={isDarkMode} onChange={() => dispatch(toggleDarkMode())} size={60} />
-      </HeaderIconsContainer> <br />
-      <Title>Weather_WIT</Title>
+      </HeaderIconsContainer>
     </HeaderContainer>
   );
 };
