@@ -7,62 +7,77 @@ import { setIsInitial, setIsLoading } from './reducers/appReducer';
 
 export const fetchWeather = createAsyncThunk(
   'weather/fetchWeather',
-  async (city: string | { lat: number; lng: number }, { dispatch, rejectWithValue, fulfillWithValue }) => {
+  async (city: string | { lat: number; lng: number }, { dispatch, rejectWithValue }) => {
     dispatch(setIsLoading(true));
 
     try {
-      const res = await Promise.all([fetchWeatherData(city), fetchExtendedForecastData(city)]);
+      const [weatherData, extendedForecastData] = await Promise.all([
+        fetchWeatherData(city),
+        fetchExtendedForecastData(city),
+      ]);
+
       dispatch(setIsLoading(false));
 
-      if (res[0].cod === 200) {
+      if (weatherData.cod === 200) {
         dispatch(setIsInitial(false));
-        return res;
+        return { weatherData, extendedForecastData };
+      } else {
+        return rejectWithValue(weatherData.message || 'Erro ao buscar dados do clima.');
       }
-      return rejectWithValue(res[0].message);
-    } catch {
+    } catch (error) {
       dispatch(setIsLoading(false));
-      return rejectWithValue('Error');
+      return rejectWithValue(error instanceof Error ? error.message : 'Erro desconhecido.');
     }
   }
 );
 
+
 export const transformWeatherData = (
-  res: any
+  res: { weatherData: any; extendedForecastData: any }
 ): {
   weather: WeatherData;
   forecast: ExtendedForecastData[];
 } => {
-  const weather = res[0] as WeatherData;
-  const forecast: ExtendedForecastData[] = [];
+  const { weatherData, extendedForecastData } = res;
 
-  weather.weather = res[0].weather[0];
-  weather.main = {
-    ...weather.main,
-    temp: kelvinToCelcius(weather.main.temp),
-    feels_like: kelvinToCelcius(weather.main.feels_like),
-    temp_max: kelvinToCelcius(weather.main.temp_max),
-    temp_min: kelvinToCelcius(weather.main.temp_min),
+  const weather: WeatherData = {
+    ...weatherData,
+    weather: weatherData.weather[0],
+    main: {
+      ...weatherData.main,
+      temp: kelvinToCelcius(weatherData.main.temp),
+      feels_like: kelvinToCelcius(weatherData.main.feels_like),
+      temp_max: kelvinToCelcius(weatherData.main.temp_max),
+      temp_min: kelvinToCelcius(weatherData.main.temp_min),
+    },
+    wind: {
+      ...weatherData.wind,
+      speed: Math.round(weatherData.wind.speed * 3.6), // Conversão m/s para km/h
+    },
   };
-  weather.wind.speed = Math.round(weather.wind.speed * 3.6);
 
+  const forecast: ExtendedForecastData[] = [];
   const next5Days = getNextFiveDays();
 
-  res[1].list.forEach((i: any, index: number) => {
-    forecast.push({
-      day: next5Days[index],
-      temp: {
-        temp_max: kelvinToCelcius(i.temp.max),
-        temp_min: kelvinToCelcius(i.temp.min),
-      },
-      weather: {
-        id: i.weather[0].id,
-        main: i.weather[0].main,
-      },
+  if (extendedForecastData.list) {
+    extendedForecastData.list.slice(0, 5).forEach((item: any, index: number) => {
+      forecast.push({
+        day: next5Days[index],
+        temp: {
+          temp_max: kelvinToCelcius(item.temp.max),
+          temp_min: kelvinToCelcius(item.temp.min),
+        },
+        weather: {
+          id: item.weather[0].id,
+          main: item.weather[0].main,
+        },
+      });
     });
-  });
+  }
 
   return {
     weather,
     forecast,
   };
 };
+
