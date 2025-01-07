@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ExtendedForecastData, WeatherData } from '../api/types';
 import { fetchExtendedForecastData, fetchWeatherData } from '../api/weather';
 import { getNextFiveDays } from '../utils/dateUtils';
-import { kelvinToCelcius } from '../utils/unitConversion';
+import { fahrenheitToCelcius } from '../utils/unitConversion';
 import { setIsInitial, setIsLoading } from './reducers/appReducer';
 
 export const fetchWeather = createAsyncThunk(
@@ -33,39 +33,36 @@ export const fetchWeather = createAsyncThunk(
 
 
 export const transformWeatherData = (
-  res: { weatherData: any; extendedForecastData: any }
+  res: any
 ): {
   weather: WeatherData;
   forecast: ExtendedForecastData[];
 } => {
-  const { weatherData, extendedForecastData } = res;
-
-  const weather: WeatherData = {
-    ...weatherData,
-    weather: weatherData.weather[0],
-    main: {
-      ...weatherData.main,
-      temp: kelvinToCelcius(weatherData.main.temp),
-      feels_like: kelvinToCelcius(weatherData.main.feels_like),
-      temp_max: kelvinToCelcius(weatherData.main.temp_max),
-      temp_min: kelvinToCelcius(weatherData.main.temp_min),
-    },
-    wind: {
-      ...weatherData.wind,
-      speed: Math.round(weatherData.wind.speed * 3.6), // Conversão m/s para km/h
-    },
-  };
-
+  const weather = res[0] as WeatherData;
+  const extendedForecastData = res[1];
   const forecast: ExtendedForecastData[] = [];
+
+  // Atualizar os dados atuais (res[0]) para usar fahrenheitToCelcius
+  weather.weather = res[0].weather[0];
+  weather.main = {
+    ...weather.main,
+    temp: fahrenheitToCelcius(weather.main.temp),
+    feels_like: fahrenheitToCelcius(weather.main.feels_like),
+    temp_max: fahrenheitToCelcius(weather.main.temp_max),
+    temp_min: fahrenheitToCelcius(weather.main.temp_min),
+  };
+  weather.wind.speed = Math.round(weather.wind.speed * 3.6);
+
   const next5Days = getNextFiveDays();
 
+  // Processar os dados da previsão estendida (res[1])
   if (extendedForecastData.list) {
     extendedForecastData.list.slice(0, 5).forEach((item: any, index: number) => {
       forecast.push({
         day: next5Days[index],
         temp: {
-          temp_max: kelvinToCelcius(item.temp.max),
-          temp_min: kelvinToCelcius(item.temp.min),
+          temp_max: fahrenheitToCelcius(item.main.temp_max), // Correção: usar item.main.temp_max
+          temp_min: fahrenheitToCelcius(item.main.temp_min), // Correção: usar item.main.temp_min
         },
         weather: {
           id: item.weather[0].id,
