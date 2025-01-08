@@ -1,10 +1,11 @@
-// import { OPEN_WEATHER_API_KEY } from './config';
+import { OPEN_WEATHER_API_KEY } from './config';
 
 const baseUrl = 'https://api.openweathermap.org/data/2.5';
 
 export const fetchWeatherData = async (city: string | { lat: number; lng: number }) => {
-  const apiKey = '9fc914390eb02e967b8829babae34155'; // Sua chave
-  let url = `${baseUrl}/weather?q=${city}&appid=${apiKey}&units=imperial`;
+  // Usando a chave da API a partir de uma variável de configuração
+  const apiKey = OPEN_WEATHER_API_KEY;
+  let url = `${baseUrl}/weather?appid=${apiKey}&units=metric`; // Alterado para Celsius
 
   if (typeof city === 'string') {
     url += `&q=${encodeURIComponent(city)}`;
@@ -20,8 +21,9 @@ export const fetchWeatherData = async (city: string | { lat: number; lng: number
 };
 
 export const fetchExtendedForecastData = async (city: string | { lat: number; lng: number }) => {
-  const apiKey = '9fc914390eb02e967b8829babae34155';
-  let url = `${baseUrl}/forecast?appid=${apiKey}`;
+  // Usando a chave da API a partir de uma variável de configuração
+  const apiKey = OPEN_WEATHER_API_KEY;
+  let url = `${baseUrl}/forecast?appid=${apiKey}&units=metric`; // Alterado para Celsius
 
   if (typeof city === 'string') {
     url += `&q=${encodeURIComponent(city)}`;
@@ -35,4 +37,3 @@ export const fetchExtendedForecastData = async (city: string | { lat: number; ln
   }
   return await response.json();
 };
-
