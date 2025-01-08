@@ -38,7 +38,9 @@ const CurrentWeather: React.FC = () => {
     }
   }, [isError]);
 
-  if (isInitial) return <></>;
+  if (isInitial || !weather.weather || weather.weather.length === 0) return <></>;
+
+  const currentWeather = weather.weather[0]; // Acessa o primeiro elemento do array
 
   return (
     <WeatherContainer>
@@ -52,13 +54,13 @@ const CurrentWeather: React.FC = () => {
         <CurrentWeatherStatus>
           <h4>{weather.name}</h4>
           <div style={{ display: 'flex' }}>
-            <WeatherIcon code={weather.weather.id} big />
+            <WeatherIcon code={currentWeather.id} big />
             <span>
               <Temperature value={weather.main.temp} />
               <sup>&deg;</sup>
             </span>
           </div>
-          <h6>{weather.weather.description}</h6>
+          <h6>{currentWeather.description}</h6>
         </CurrentWeatherStatus>
 
         <CurrentWeatherInfo>

@@ -38,43 +38,74 @@ export const transformWeatherData = (
   weather: WeatherData;
   forecast: ExtendedForecastData[];
 } => {
-  const weather = res[0] as WeatherData;
+  console.log('Dados recebidos da API:', res); // Log para depuração
+  
+  if (!res || typeof res !== 'object') {
+    console.error('Resposta inválida da API:', res);
+    throw new Error('Os dados recebidos da API estão incompletos ou inválidos.');
+  }
+
+  // Extração de dados do clima atual
+  const currentWeatherData = res[0];
+  if (
+    !currentWeatherData ||
+    !currentWeatherData.main ||
+    !currentWeatherData.weather ||
+    !Array.isArray(currentWeatherData.weather) ||
+    currentWeatherData.weather.length === 0 ||
+    !currentWeatherData.wind
+  ) {
+    console.error('Dados incompletos para o clima atual:', currentWeatherData);
+    throw new Error('Os dados do clima atual estão incompletos ou inválidos.');
+  }
+
+  const weather: WeatherData = {
+    ...currentWeatherData,
+    weather: currentWeatherData.weather[0], // Primeiro item do array
+    main: {
+      ...currentWeatherData.main,
+      temp: fahrenheitToCelcius(currentWeatherData.main.temp),
+      feels_like: fahrenheitToCelcius(currentWeatherData.main.feels_like),
+      temp_max: fahrenheitToCelcius(currentWeatherData.main.temp_max),
+      temp_min: fahrenheitToCelcius(currentWeatherData.main.temp_min),
+    },
+    wind: {
+      ...currentWeatherData.wind,
+      speed: Math.round(currentWeatherData.wind.speed * 3.6), // Converter para km/h
+    },
+  };
+
+  // Extração de dados de previsão estendida
   const extendedForecastData = res[1];
   const forecast: ExtendedForecastData[] = [];
-
-  // Atualizar os dados atuais (res[0]) para usar fahrenheitToCelcius
-  weather.weather = res[0].weather[0];
-  weather.main = {
-    ...weather.main,
-    temp: fahrenheitToCelcius(weather.main.temp),
-    feels_like: fahrenheitToCelcius(weather.main.feels_like),
-    temp_max: fahrenheitToCelcius(weather.main.temp_max),
-    temp_min: fahrenheitToCelcius(weather.main.temp_min),
-  };
-  weather.wind.speed = Math.round(weather.wind.speed * 3.6);
-
-  const next5Days = getNextFiveDays();
-
-  // Processar os dados da previsão estendida (res[1])
-  if (extendedForecastData.list) {
+  if (
+    extendedForecastData &&
+    extendedForecastData.list &&
+    Array.isArray(extendedForecastData.list)
+  ) {
+    const next5Days = getNextFiveDays();
     extendedForecastData.list.slice(0, 5).forEach((item: any, index: number) => {
-      forecast.push({
-        day: next5Days[index],
-        temp: {
-          temp_max: fahrenheitToCelcius(item.main.temp_max), // Correção: usar item.main.temp_max
-          temp_min: fahrenheitToCelcius(item.main.temp_min), // Correção: usar item.main.temp_min
-        },
-        weather: {
-          id: item.weather[0].id,
-          main: item.weather[0].main,
-        },
-      });
+      if (
+        item &&
+        item.main &&
+        item.weather &&
+        Array.isArray(item.weather) &&
+        item.weather.length > 0
+      ) {
+        forecast.push({
+          day: next5Days[index],
+          temp: {
+            temp_max: fahrenheitToCelcius(item.main.temp_max),
+            temp_min: fahrenheitToCelcius(item.main.temp_min),
+          },
+          weather: {
+            id: item.weather[0].id,
+            main: item.weather[0].main,
+          },
+        });
+      }
     });
   }
 
-  return {
-    weather,
-    forecast,
-  };
+  return { weather, forecast };
 };
-

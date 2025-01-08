@@ -24,12 +24,14 @@ const initialState: WeatherState = {
       sunrise: 0,
       sunset: 0,
     },
-    weather: {
-      id: 200,
-      main: '',
-      description: '',
-      icon: '',
-    },
+    weather: [
+      {
+        id: 200,
+        main: '',
+        description: '',
+        icon: '',
+      },
+    ],
     wind: {
       deg: 0,
       speed: 0,
@@ -38,6 +40,7 @@ const initialState: WeatherState = {
   extendedWeatherData: [],
   isError: false,
 };
+
 
 const weatherSlice = createSlice({
   name: 'weather',
