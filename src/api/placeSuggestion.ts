@@ -1,7 +1,7 @@
 import { OPEN_WEATHER_API_KEY } from './config';
 
 export const fetchCities = async (search: string) => {
-  const url = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search)}&limit=10&appid=${OPEN_WEATHER_API_KEY}`;
+  const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search)}&limit=10&appid=${OPEN_WEATHER_API_KEY}`;
 
   try {
     const response = await fetch(url);
