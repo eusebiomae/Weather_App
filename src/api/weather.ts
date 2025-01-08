@@ -3,7 +3,7 @@
 const baseUrl = 'https://api.openweathermap.org/data/2.5';
 
 export const fetchWeatherData = async (city: string | { lat: number; lng: number }) => {
-  const apiKey = 'a3176e67fb0ebf0258a528fa365e64d6'; // Sua chave
+  const apiKey = '9fc914390eb02e967b8829babae34155'; // Sua chave
   let url = `${baseUrl}/weather?q=${city}&appid=${apiKey}&units=imperial`;
 
   if (typeof city === 'string') {
@@ -20,7 +20,7 @@ export const fetchWeatherData = async (city: string | { lat: number; lng: number
 };
 
 export const fetchExtendedForecastData = async (city: string | { lat: number; lng: number }) => {
-  const apiKey = 'a3176e67fb0ebf0258a528fa365e64d6';
+  const apiKey = '9fc914390eb02e967b8829babae34155';
   let url = `${baseUrl}/forecast?appid=${apiKey}`;
 
   if (typeof city === 'string') {
